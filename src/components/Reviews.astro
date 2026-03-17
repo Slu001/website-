@@ -4,43 +4,36 @@
   <h2 class="mb-2 font-serif text-4xl font-bold text-white text-center">Leave a Review</h2>
   <p class="mb-12 text-center text-neutral text-sm">Tell me what you think 👇</p>
 
-  <!-- Star + comment form -->
   <div class="review-form mx-auto max-w-lg bg-white/5 border border-white/10 rounded-2xl p-8 mb-16">
     <div class="mb-6 text-center">
       <p class="text-sm text-neutral mb-3">Your rating</p>
-      <div class="stars" id="starPicker">
+      <div id="starPicker">
         {[1,2,3,4,5].map(n => (
           <span class="star text-4xl cursor-pointer select-none" data-value={n}>☆</span>
         ))}
       </div>
       <input type="hidden" id="ratingValue" value="0" />
     </div>
-    <input
-      id="reviewName"
-      type="text"
-      placeholder="Your name"
-      class="w-full mb-3 px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-neutral text-sm focus:outline-none focus:border-primary"
-    />
-    <textarea
-      id="reviewComment"
-      placeholder="Write your review..."
-      rows="4"
-      class="w-full mb-4 px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-neutral text-sm focus:outline-none focus:border-primary resize-none"
-    ></textarea>
-    <button
-      id="submitReview"
-      class="w-full rounded-full bg-primary py-3 text-sm font-medium text-white hover:opacity-80 transition-opacity"
-    >
+    <input id="reviewName" type="text" placeholder="Your name"
+      class="w-full mb-3 px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-neutral text-sm focus:outline-none focus:border-primary" />
+    <textarea id="reviewComment" placeholder="Write your review..." rows="4"
+      class="w-full mb-4 px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-neutral text-sm focus:outline-none focus:border-primary resize-none"></textarea>
+    <button id="submitReview"
+      class="w-full rounded-full bg-primary py-3 text-sm font-medium text-white hover:opacity-80 transition-opacity">
       Submit Review ⭐
     </button>
     <p id="reviewMsg" class="mt-3 text-center text-sm text-neutral hidden"></p>
   </div>
 
-  <!-- Reviews list -->
-  <div id="reviewsList" class="mx-auto max-w-lg space-y-4"></div>
+  <div id="reviewsList" class="mx-auto max-w-lg space-y-4">
+    <p class="text-center text-neutral text-sm">Loading reviews...</p>
+  </div>
 </section>
 
 <script>
+  const SUPABASE_URL = 'https://sbiinkqoeoxlwzkdipmc.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_6kDsYF6l5bcr84zhsuEfYw_01wRymrL';
+
   // Star picker
   const stars = document.querySelectorAll('.star');
   const ratingInput = document.getElementById('ratingValue') as HTMLInputElement;
@@ -56,57 +49,47 @@
 
   function highlight(val: number) {
     stars.forEach(s => {
-      s.textContent = Number(s.getAttribute('data-value')) <= val ? '★' : '☆';
-      (s as HTMLElement).style.color = Number(s.getAttribute('data-value')) <= val ? '#f59e0b' : '#94a3b8';
+      const v = Number(s.getAttribute('data-value'));
+      s.textContent = v <= val ? '★' : '☆';
+      (s as HTMLElement).style.color = v <= val ? '#f59e0b' : '#94a3b8';
     });
   }
 
-  // Load reviews from localStorage (visible only to this browser — upgrade to Supabase later)
-  const KEY = 'sanuth-reviews';
-  let reviews: {name:string, rating:number, comment:string, date:string}[] = JSON.parse(localStorage.getItem(KEY) || '[]');
-  renderReviews();
-
-  document.getElementById('submitReview')?.addEventListener('click', () => {
-    const name = (document.getElementById('reviewName') as HTMLInputElement).value.trim();
-    const comment = (document.getElementById('reviewComment') as HTMLTextAreaElement).value.trim();
-    const rating = Number(ratingInput.value);
-    const msg = document.getElementById('reviewMsg')!;
-
-    if (!name || !comment || rating === 0) {
-      msg.textContent = 'Please fill in everything and pick a star rating!';
-      msg.classList.remove('hidden');
-      return;
-    }
-
-    reviews.unshift({ name, rating, comment, date: new Date().toLocaleDateString() });
-    localStorage.setItem(KEY, JSON.stringify(reviews));
-    renderReviews();
-
-    (document.getElementById('reviewName') as HTMLInputElement).value = '';
-    (document.getElementById('reviewComment') as HTMLTextAreaElement).value = '';
-    ratingInput.value = '0';
-    highlight(0);
-
-    msg.textContent = 'Review submitted! Thanks 🙌';
-    msg.classList.remove('hidden');
-    setTimeout(() => msg.classList.add('hidden'), 3000);
-  });
-
-  function renderReviews() {
+  // Load reviews
+  async function loadReviews() {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/reviews?order=created_at.desc`, {
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`
+      }
+    });
+    const reviews = await res.json();
     const list = document.getElementById('reviewsList')!;
-    if (reviews.length === 0) {
+
+    if (!reviews.length) {
       list.innerHTML = '<p class="text-center text-neutral text-sm">No reviews yet — be the first!</p>';
       return;
     }
-    list.innerHTML = reviews.map(r => `
+
+    list.innerHTML = reviews.map((r: any) => `
       <div class="bg-white/5 border border-white/10 rounded-2xl p-6">
         <div class="flex items-center justify-between mb-2">
           <span class="font-medium text-white">${r.name}</span>
-          <span class="text-xs text-neutral">${r.date}</span>
+          <span class="text-xs text-neutral">${new Date(r.created_at).toLocaleDateString()}</span>
         </div>
         <div class="mb-3 text-amber-400">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</div>
         <p class="text-sm text-neutral">${r.comment}</p>
       </div>
     `).join('');
   }
-</script>
+
+  loadReviews();
+
+  // Submit review
+  document.getElementById('submitReview')?.addEventListener('click', async () => {
+    const name = (document.getElementById('reviewName') as HTMLInputElement).value.trim();
+    const comment = (document.getElementById('reviewComment') as HTMLTextAreaElement).value.trim();
+    const rating = Number(ratingInput.value);
+    const msg = document.getElementById('reviewMsg')!;
+
+    if (!name || !comment || rating ===
