@@ -83,7 +83,7 @@ const ogImgUrl = canonicalURL + socialImage;
       }
     </style>
 
-    <!-- Easter Egg -->
+    <!-- Matrix Easter Egg -->
     <div id="matrixOverlay" style="display:none; position:fixed; inset:0; background:#000; z-index:9999; flex-direction:column; align-items:center; justify-content:center;">
       <canvas id="matrixCanvas" style="position:absolute; inset:0;"></canvas>
       <div id="pillBox" style="position:relative; z-index:10; text-align:center;">
@@ -109,6 +109,9 @@ const ogImgUrl = canonicalURL + socialImage;
     </div>
 
     <script is:inline>
+      // ============================================
+      // MATRIX EASTER EGG (type "sanuth")
+      // ============================================
       var typed = '';
       var secret = 'sanuth';
 
@@ -116,6 +119,7 @@ const ogImgUrl = canonicalURL + socialImage;
         typed += e.key.toLowerCase();
         if (typed.length > secret.length) typed = typed.slice(-secret.length);
         if (typed === secret) {
+          playMatrixSound();
           activateMatrix();
         }
       });
@@ -137,21 +141,12 @@ const ogImgUrl = canonicalURL + socialImage;
         var redIsRick = Math.random() < 0.5;
 
         document.getElementById('redPill').onclick = function() {
-          if (redIsRick) {
-            window.open(rickroll, '_blank');
-            closeMatrix();
-          } else {
-            showNeoMessage(msg);
-          }
+          if (redIsRick) { window.open(rickroll, '_blank'); closeMatrix(); }
+          else { showNeoMessage(msg); }
         };
-
         document.getElementById('bluePill').onclick = function() {
-          if (!redIsRick) {
-            window.open(rickroll, '_blank');
-            closeMatrix();
-          } else {
-            showNeoMessage(msg);
-          }
+          if (!redIsRick) { window.open(rickroll, '_blank'); closeMatrix(); }
+          else { showNeoMessage(msg); }
         };
       }
 
@@ -187,7 +182,6 @@ const ogImgUrl = canonicalURL + socialImage;
         canvas.height = window.innerHeight;
         var cols = Math.floor(canvas.width / 16);
         var drops = Array(cols).fill(1);
-
         matrixInterval = setInterval(function() {
           ctx.fillStyle = 'rgba(0,0,0,0.05)';
           ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -202,10 +196,201 @@ const ogImgUrl = canonicalURL + socialImage;
         }, 40);
       }
 
-      function stopMatrixRain() {
-        clearInterval(matrixInterval);
+      function stopMatrixRain() { clearInterval(matrixInterval); }
+
+      // ============================================
+      // 1. SECRET SOUND
+      // ============================================
+      function playMatrixSound() {
+        try {
+          var actx = new (window.AudioContext || window.webkitAudioContext)();
+          [200, 150, 100, 80, 60].forEach(function(freq, i) {
+            var osc = actx.createOscillator();
+            var gain = actx.createGain();
+            osc.connect(gain);
+            gain.connect(actx.destination);
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(freq, actx.currentTime + i * 0.1);
+            gain.gain.setValueAtTime(0.3, actx.currentTime + i * 0.1);
+            gain.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + i * 0.1 + 0.3);
+            osc.start(actx.currentTime + i * 0.1);
+            osc.stop(actx.currentTime + i * 0.1 + 0.3);
+          });
+        } catch(e) {}
+      }
+
+      // ============================================
+      // 2. SHAKE DETECTOR
+      // ============================================
+      var lastShake = 0;
+      var shakeMessages = [
+        "STOP SHAKING ME!! 😵",
+        "Woah there!! 🌀",
+        "You found the shake easter egg! 🥚",
+        "My brain is scrambled 🍳",
+      ];
+      window.addEventListener('devicemotion', function(e) {
+        var acc = e.accelerationIncludingGravity;
+        if (!acc) return;
+        var total = Math.abs(acc.x) + Math.abs(acc.y) + Math.abs(acc.z);
+        var now = Date.now();
+        if (total > 40 && now - lastShake > 2000) {
+          lastShake = now;
+          var msg = shakeMessages[Math.floor(Math.random() * shakeMessages.length)];
+          showToast(msg, '🌀');
+          document.body.style.animation = 'shake 0.5s ease';
+          setTimeout(function() { document.body.style.animation = ''; }, 500);
+        }
+      });
+
+      // ============================================
+      // 3. TYPE "hello"
+      // ============================================
+      var helloTyped = '';
+      var helloResponses = [
+        'Hello, human. I have been expecting you. 👁️',
+        'Hey! Nice to meet you 👋 You found a secret!',
+        'HELLO THERE. General Kenobi... 🤖',
+        'Oh hi! You typed hello. Smart. Very smart. 🧠',
+      ];
+      document.addEventListener('keydown', function(e) {
+        helloTyped += e.key.toLowerCase();
+        if (helloTyped.length > 5) helloTyped = helloTyped.slice(-5);
+        if (helloTyped === 'hello') {
+          helloTyped = '';
+          var response = helloResponses[Math.floor(Math.random() * helloResponses.length)];
+          showTerminal(response);
+        }
+      });
+
+      function showTerminal(msg) {
+        var el = document.createElement('div');
+        el.style.cssText = 'position:fixed; bottom:2rem; left:50%; transform:translateX(-50%); background:#000; border:1px solid #00ff00; color:#00ff00; font-family:monospace; padding:1.5rem 2rem; border-radius:12px; z-index:9998; max-width:400px; text-align:left; box-shadow:0 0 30px rgba(0,255,0,0.3);';
+        el.innerHTML = '<span style="opacity:0.6">visitor@sanuth.dev:~$ </span><span id="termText"></span><span style="animation:blink 1s infinite">█</span>';
+        document.body.appendChild(el);
+        var i = 0;
+        var interval = setInterval(function() {
+          var t = document.getElementById('termText');
+          if (t) t.textContent += msg[i];
+          i++;
+          if (i >= msg.length) clearInterval(interval);
+        }, 40);
+        setTimeout(function() { el.remove(); }, 5000);
+      }
+
+      // ============================================
+      // 4. CLICK AVATAR 5x → BOUNCING BALL
+      // ============================================
+      var avatarClicks = 0;
+      var ballActive = false;
+
+      document.addEventListener('click', function(e) {
+        var avatar = document.querySelector('.avatar-wrapper img');
+        if (!avatar) return;
+        var rect = avatar.getBoundingClientRect();
+        var cx = rect.left + rect.width / 2;
+        var cy = rect.top + rect.height / 2;
+        var dist = Math.sqrt(Math.pow(e.clientX - cx, 2) + Math.pow(e.clientY - cy, 2));
+        if (dist < 80) {
+          avatarClicks++;
+          showToast('Click ' + avatarClicks + '/5 🏓', '');
+          if (avatarClicks >= 5 && !ballActive) {
+            avatarClicks = 0;
+            launchBall();
+          }
+        }
+      });
+
+      function launchBall() {
+        ballActive = true;
+        var ball = document.createElement('div');
+        ball.style.cssText = 'position:fixed; width:40px; height:40px; background:radial-gradient(circle at 30% 30%, #fff, #2563eb); border-radius:50%; z-index:9997; pointer-events:none; box-shadow:0 0 20px rgba(37,99,235,0.8); top:50%; left:50%;';
+        document.body.appendChild(ball);
+        var x = window.innerWidth / 2;
+        var y = window.innerHeight / 2;
+        var dx = (Math.random() * 6 + 4) * (Math.random() > 0.5 ? 1 : -1);
+        var dy = (Math.random() * 6 + 4) * (Math.random() > 0.5 ? 1 : -1);
+        var hits = 0;
+        var targets = Array.from(document.querySelectorAll('h1, h2, p, button, a'));
+        var anim = setInterval(function() {
+          x += dx; y += dy;
+          if (x <= 0 || x >= window.innerWidth - 40) dx *= -1;
+          if (y <= 0 || y >= window.innerHeight - 40) dy *= -1;
+          ball.style.left = x + 'px';
+          ball.style.top = y + 'px';
+          targets.forEach(function(el) {
+            var r = el.getBoundingClientRect();
+            if (x > r.left && x < r.right && y > r.top && y < r.bottom) {
+              el.style.transform = 'rotate(' + (Math.random() * 20 - 10) + 'deg) scale(' + (0.8 + Math.random() * 0.4) + ')';
+              el.style.color = '#' + Math.floor(Math.random() * 16777215).toString(16);
+              el.style.transition = 'all 0.1s';
+              hits++;
+              setTimeout(function() { el.style.transform = ''; el.style.color = ''; }, 300);
+            }
+          });
+          if (hits >= 20) {
+            clearInterval(anim);
+            ball.remove();
+            ballActive = false;
+            showToast('Ball retired after 20 hits! 🏓', '💥');
+          }
+        }, 16);
+        setTimeout(function() {
+          clearInterval(anim);
+          ball.remove();
+          ballActive = false;
+        }, 10000);
+      }
+
+      // ============================================
+      // 5. KONAMI CODE
+      // ============================================
+      var konami = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
+      var konamiIndex = 0;
+      document.addEventListener('keydown', function(e) {
+        if (e.key === konami[konamiIndex]) {
+          konamiIndex++;
+          if (konamiIndex === konami.length) {
+            konamiIndex = 0;
+            triggerKonami();
+          }
+        } else {
+          konamiIndex = 0;
+        }
+      });
+
+      function triggerKonami() {
+        playMatrixSound();
+        var overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:9998; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:monospace;';
+        overlay.innerHTML = '<div style="text-align:center; padding:2rem;"><div style="font-size:4rem; margin-bottom:1rem;">🏆</div><h2 style="color:#facc15; font-size:2rem; margin-bottom:1rem;">CHEAT CODE ACTIVATED</h2><p style="color:#94a3b8; margin-bottom:0.5rem;">↑↑↓↓←→←→BA</p><p style="color:#00ff00; font-size:1.2rem; margin:1.5rem 0;">You are now a legend.<br/>(+30 lives added. not really 😄)</p><p style="color:#60a5fa; font-size:0.9rem; margin-bottom:2rem;">You\'re one of the few who knows this secret 🤫</p><button onclick="this.parentElement.parentElement.remove()" style="background:#facc15; color:#000; border:none; padding:0.75rem 2rem; border-radius:9999px; cursor:pointer; font-family:monospace; font-weight:bold;">Awesome! 😎</button></div>';
+        document.body.appendChild(overlay);
+        if (window.confetti) window.confetti({ particleCount: 200, spread: 120, origin: { y: 0.5 } });
+      }
+
+      // ============================================
+      // SHARED TOAST
+      // ============================================
+      function showToast(msg, icon) {
+        var toast = document.createElement('div');
+        toast.style.cssText = 'position:fixed; top:2rem; right:2rem; background:#1e293b; color:#fff; padding:1rem 1.5rem; border-radius:12px; z-index:9999; font-family:monospace; font-size:0.9rem; border:1px solid rgba(255,255,255,0.1); box-shadow:0 10px 30px rgba(0,0,0,0.5);';
+        toast.textContent = (icon ? icon + ' ' : '') + msg;
+        document.body.appendChild(toast);
+        setTimeout(function() { toast.remove(); }, 2500);
       }
     </script>
+
+    <style is:inline>
+      @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-10px) rotate(-1deg); }
+        75% { transform: translateX(10px) rotate(1deg); }
+      }
+      @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0; }
+      }
+    </style>
 
   </body>
 </html>
