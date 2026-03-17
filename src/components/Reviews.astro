@@ -1,5 +1,7 @@
 ---
 ---
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+
 <section class="py-20 border-t border-white/10" id="reviews">
   <h2 class="mb-2 font-serif text-4xl font-bold text-white text-center">Leave a Review</h2>
   <p class="mb-12 text-center text-neutral text-sm">Tell me what you think 👇</p>
@@ -116,6 +118,7 @@
         msg.textContent = 'Review submitted! Thanks 🙌';
         msg.classList.remove('hidden');
         setTimeout(function() { msg.classList.add('hidden'); }, 3000);
+        window.confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
         loadReviews();
       } else {
         msg.textContent = 'Something went wrong, try again!';
