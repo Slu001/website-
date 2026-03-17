@@ -333,8 +333,6 @@ const ogImgUrl = canonicalURL + socialImage;
         if (!avatarWrapper) return;
         var rect = avatarWrapper.getBoundingClientRect();
         var size = rect.width;
-
-        // Detach avatar and make it float
         avatarWrapper.style.position = 'fixed';
         avatarWrapper.style.top = rect.top + 'px';
         avatarWrapper.style.left = rect.left + 'px';
@@ -343,13 +341,11 @@ const ogImgUrl = canonicalURL + socialImage;
         avatarWrapper.style.animation = 'none';
         avatarWrapper.style.transition = 'none';
         document.body.appendChild(avatarWrapper);
-
         var x = rect.left;
         var y = rect.top;
         var dx = (Math.random() * 5 + 4) * (Math.random() > 0.5 ? 1 : -1);
         var dy = (Math.random() * 5 + 4) * (Math.random() > 0.5 ? 1 : -1);
         var targets = Array.from(document.querySelectorAll('h1, h2, p, button, a'));
-
         setInterval(function() {
           x += dx; y += dy;
           if (x <= 0 || x >= window.innerWidth - size) {
@@ -362,18 +358,13 @@ const ogImgUrl = canonicalURL + socialImage;
           }
           avatarWrapper.style.left = x + 'px';
           avatarWrapper.style.top = y + 'px';
-
-          // Damage letters on hit
           targets.forEach(function(el) {
             var r = el.getBoundingClientRect();
             if (x + size > r.left && x < r.right && y + size > r.top && y < r.bottom) {
               el.style.transform = 'rotate(' + (Math.random() * 30 - 15) + 'deg) scale(' + (0.7 + Math.random() * 0.5) + ')';
               el.style.color = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
               el.style.transition = 'all 0.1s';
-              setTimeout(function() {
-                el.style.transform = '';
-                el.style.color = '';
-              }, 400);
+              setTimeout(function() { el.style.transform = ''; el.style.color = ''; }, 400);
             }
           });
         }, 16);
@@ -415,6 +406,49 @@ const ogImgUrl = canonicalURL + socialImage;
         document.body.appendChild(toast);
         setTimeout(function() { toast.remove(); }, 2500);
       }
+
+      // ============================================
+      // DOUBLE TAP FOOTER → SECRET DASHBOARD
+      // ============================================
+      var lastFooterTap = 0;
+      var footerTapCount = 0;
+      document.addEventListener('click', function(e) {
+        var footer = document.querySelector('footer');
+        if (!footer) return;
+        var rect = footer.getBoundingClientRect();
+        if (e.clientY >= rect.top) {
+          var now = Date.now();
+          if (now - lastFooterTap < 400) {
+            footerTapCount++;
+            if (footerTapCount >= 2) {
+              footerTapCount = 0;
+              document.getElementById('secretDashboard').style.display = 'block';
+            }
+          } else {
+            footerTapCount = 1;
+          }
+          lastFooterTap = now;
+        }
+      });
+
+      // ============================================
+      // VISITOR TRACKING
+      // ============================================
+      fetch('https://ipapi.co/json/')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          fetch('/api/visitors', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              country: data.country_name,
+              city: data.city,
+              device: navigator.platform,
+              browser: navigator.userAgent.split(' ').pop()
+            })
+          });
+        });
+
     </script>
 
     <style is:inline>
