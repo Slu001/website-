@@ -3,10 +3,12 @@ import { SITE_CONTENT } from "@config";
 import Hero from "@components/Hero.astro";
 import Layout from "@layouts/Layout.astro";
 import Reviews from "@components/Reviews.astro";
+import Game from "@components/Game.astro";
 import "../styles/global.css";
 ---
 
 <Layout>
   <Hero {...SITE_CONTENT.hero} />
   <Reviews />
+  <Game />
 </Layout>
