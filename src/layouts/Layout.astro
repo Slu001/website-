@@ -91,27 +91,18 @@ const ogImgUrl = canonicalURL + socialImage;
           This is your last chance.<br/>After this, there is no turning back.
         </p>
         <div style="display:flex; gap:2rem; justify-content:center;">
-          <button id="redPill" style="background:#dc2626; color:white; border:none; padding:1rem 2.5rem; border-radius:9999px; font-size:1rem; cursor:pointer; font-family:monospace; box-shadow:0 0 20px #dc2626;">
-            Red Pill 🔴
-          </button>
-          <button id="bluePill" style="background:#2563eb; color:white; border:none; padding:1rem 2.5rem; border-radius:9999px; font-size:1rem; cursor:pointer; font-family:monospace; box-shadow:0 0 20px #2563eb;">
-            Blue Pill 🔵
-          </button>
+          <button id="redPill" style="background:#dc2626; color:white; border:none; padding:1rem 2.5rem; border-radius:9999px; font-size:1rem; cursor:pointer; font-family:monospace; box-shadow:0 0 20px #dc2626;">Red Pill 🔴</button>
+          <button id="bluePill" style="background:#2563eb; color:white; border:none; padding:1rem 2.5rem; border-radius:9999px; font-size:1rem; cursor:pointer; font-family:monospace; box-shadow:0 0 20px #2563eb;">Blue Pill 🔵</button>
         </div>
         <p style="color:#00ff00; font-family:monospace; font-size:0.75rem; margin-top:1.5rem; opacity:0.6;">Press ESC to close</p>
       </div>
       <div id="neoMessage" style="display:none; position:relative; z-index:10; text-align:center; padding:2rem;">
         <p id="neoText" style="color:#00ff00; font-family:monospace; font-size:1.5rem; text-shadow:0 0 20px #00ff00; line-height:2;"></p>
-        <button id="closeMatrix" style="margin-top:2rem; background:transparent; color:#00ff00; border:1px solid #00ff00; padding:0.75rem 2rem; border-radius:9999px; font-family:monospace; cursor:pointer;">
-          Exit the Matrix
-        </button>
+        <button id="closeMatrix" style="margin-top:2rem; background:transparent; color:#00ff00; border:1px solid #00ff00; padding:0.75rem 2rem; border-radius:9999px; font-family:monospace; cursor:pointer;">Exit the Matrix</button>
       </div>
     </div>
 
     <script is:inline>
-      // ============================================
-      // MATRIX SOUND
-      // ============================================
       var matrixAudioCtx = null;
       var matrixSoundNodes = [];
 
@@ -119,18 +110,16 @@ const ogImgUrl = canonicalURL + socialImage;
         try {
           matrixAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
           matrixSoundNodes = [];
-          var frequencies = [200, 150, 100, 80, 60, 50, 40, 35, 30];
-          frequencies.forEach(function(freq, i) {
+          [200,150,100,80,60,50,40,35,30].forEach(function(freq,i) {
             var osc = matrixAudioCtx.createOscillator();
             var gain = matrixAudioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(matrixAudioCtx.destination);
+            osc.connect(gain); gain.connect(matrixAudioCtx.destination);
             osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(freq, matrixAudioCtx.currentTime + i * 0.15);
-            gain.gain.setValueAtTime(0.2, matrixAudioCtx.currentTime + i * 0.15);
-            gain.gain.exponentialRampToValueAtTime(0.05, matrixAudioCtx.currentTime + i * 0.15 + 1.5);
-            osc.start(matrixAudioCtx.currentTime + i * 0.15);
-            matrixSoundNodes.push({ osc: osc, gain: gain });
+            osc.frequency.setValueAtTime(freq, matrixAudioCtx.currentTime + i*0.15);
+            gain.gain.setValueAtTime(0.2, matrixAudioCtx.currentTime + i*0.15);
+            gain.gain.exponentialRampToValueAtTime(0.05, matrixAudioCtx.currentTime + i*0.15 + 1.5);
+            osc.start(matrixAudioCtx.currentTime + i*0.15);
+            matrixSoundNodes.push({osc:osc,gain:gain});
           });
         } catch(e) {}
       }
@@ -147,27 +136,19 @@ const ogImgUrl = canonicalURL + socialImage;
             });
             setTimeout(function() {
               try { matrixAudioCtx.close(); } catch(e) {}
-              matrixAudioCtx = null;
-              matrixSoundNodes = [];
+              matrixAudioCtx = null; matrixSoundNodes = [];
             }, 400);
           }
         } catch(e) {}
       }
 
-      // ============================================
-      // MATRIX EASTER EGG (type "sanuth")
-      // ============================================
       var typed = '';
       var secret = 'sanuth';
-
       document.addEventListener('keydown', function(e) {
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
         typed += e.key.toLowerCase();
         if (typed.length > secret.length) typed = typed.slice(-secret.length);
-        if (typed === secret) {
-          playMatrixSound();
-          activateMatrix();
-        }
+        if (typed === secret) { playMatrixSound(); activateMatrix(); }
       });
 
       function activateMatrix() {
@@ -176,7 +157,6 @@ const ogImgUrl = canonicalURL + socialImage;
         document.getElementById('pillBox').style.display = 'block';
         document.getElementById('neoMessage').style.display = 'none';
         startMatrixRain();
-
         var rickroll = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
         var messages = [
           'Welcome to the Matrix, Neo.\nYou have been chosen.\nThe truth is out there...\n\n🟢 Follow the white rabbit.',
@@ -185,14 +165,11 @@ const ogImgUrl = canonicalURL + socialImage;
         ];
         var msg = messages[Math.floor(Math.random() * messages.length)];
         var redIsRick = Math.random() < 0.5;
-
         document.getElementById('redPill').onclick = function() {
-          if (redIsRick) { window.open(rickroll, '_blank'); closeMatrix(); }
-          else { showNeoMessage(msg); }
+          if (redIsRick) { window.open(rickroll,'_blank'); closeMatrix(); } else { showNeoMessage(msg); }
         };
         document.getElementById('bluePill').onclick = function() {
-          if (!redIsRick) { window.open(rickroll, '_blank'); closeMatrix(); }
-          else { showNeoMessage(msg); }
+          if (!redIsRick) { window.open(rickroll,'_blank'); closeMatrix(); } else { showNeoMessage(msg); }
         };
       }
 
@@ -211,50 +188,35 @@ const ogImgUrl = canonicalURL + socialImage;
 
       function closeMatrix() {
         document.getElementById('matrixOverlay').style.display = 'none';
-        stopMatrixRain();
-        stopMatrixSound();
-        typed = '';
+        stopMatrixRain(); stopMatrixSound(); typed = '';
       }
 
       document.getElementById('closeMatrix').addEventListener('click', closeMatrix);
-      document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') closeMatrix();
-      });
+      document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeMatrix(); });
 
       var matrixInterval;
       function startMatrixRain() {
         var canvas = document.getElementById('matrixCanvas');
         var ctx = canvas.getContext('2d');
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
         var cols = Math.floor(canvas.width / 16);
         var drops = Array(cols).fill(1);
         matrixInterval = setInterval(function() {
           ctx.fillStyle = 'rgba(0,0,0,0.05)';
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-          ctx.fillStyle = '#00ff00';
-          ctx.font = '15px monospace';
-          drops.forEach(function(y, i) {
-            var char = String.fromCharCode(0x30A0 + Math.random() * 96);
-            ctx.fillText(char, i * 16, y * 16);
-            if (y * 16 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+          ctx.fillRect(0,0,canvas.width,canvas.height);
+          ctx.fillStyle = '#00ff00'; ctx.font = '15px monospace';
+          drops.forEach(function(y,i) {
+            var char = String.fromCharCode(0x30A0 + Math.random()*96);
+            ctx.fillText(char, i*16, y*16);
+            if (y*16 > canvas.height && Math.random() > 0.975) drops[i] = 0;
             drops[i]++;
           });
         }, 40);
       }
-
       function stopMatrixRain() { clearInterval(matrixInterval); }
 
-      // ============================================
-      // 2. SHAKE DETECTOR
-      // ============================================
       var lastShake = 0;
-      var shakeMessages = [
-        "STOP SHAKING ME!! 😵",
-        "Woah there!! 🌀",
-        "You found the shake easter egg! 🥚",
-        "My brain is scrambled 🍳",
-      ];
+      var shakeMessages = ["STOP SHAKING ME!! 😵","Woah there!! 🌀","You found the shake easter egg! 🥚","My brain is scrambled 🍳"];
       window.addEventListener('devicemotion', function(e) {
         var acc = e.accelerationIncludingGravity;
         if (!acc) return;
@@ -262,16 +224,12 @@ const ogImgUrl = canonicalURL + socialImage;
         var now = Date.now();
         if (total > 40 && now - lastShake > 2000) {
           lastShake = now;
-          var msg = shakeMessages[Math.floor(Math.random() * shakeMessages.length)];
-          showToast(msg, '🌀');
+          showToast(shakeMessages[Math.floor(Math.random()*shakeMessages.length)], '🌀');
           document.body.style.animation = 'shake 0.5s ease';
           setTimeout(function() { document.body.style.animation = ''; }, 500);
         }
       });
 
-      // ============================================
-      // 3. TYPE "hello"
-      // ============================================
       var helloTyped = '';
       var helloResponses = [
         'Hello, human. I have been expecting you. 👁️',
@@ -285,8 +243,7 @@ const ogImgUrl = canonicalURL + socialImage;
         if (helloTyped.length > 5) helloTyped = helloTyped.slice(-5);
         if (helloTyped === 'hello') {
           helloTyped = '';
-          var response = helloResponses[Math.floor(Math.random() * helloResponses.length)];
-          showTerminal(response);
+          showTerminal(helloResponses[Math.floor(Math.random()*helloResponses.length)]);
         }
       });
 
@@ -298,34 +255,25 @@ const ogImgUrl = canonicalURL + socialImage;
         var i = 0;
         var interval = setInterval(function() {
           var t = document.getElementById('termText');
-          if (t) t.textContent += msg[i];
-          i++;
+          if (t) t.textContent += msg[i]; i++;
           if (i >= msg.length) clearInterval(interval);
         }, 40);
         setTimeout(function() { el.remove(); }, 5000);
       }
 
-      // ============================================
-      // 4. CLICK AVATAR 5x → BOUNCING AVATAR BALL
-      // ============================================
       var avatarClicks = 0;
       var ballActive = false;
-
       document.addEventListener('click', function(e) {
         if (ballActive) return;
         var avatar = document.querySelector('.avatar-wrapper img');
         if (!avatar) return;
         var rect = avatar.getBoundingClientRect();
-        var cx = rect.left + rect.width / 2;
-        var cy = rect.top + rect.height / 2;
-        var dist = Math.sqrt(Math.pow(e.clientX - cx, 2) + Math.pow(e.clientY - cy, 2));
+        var cx = rect.left + rect.width/2; var cy = rect.top + rect.height/2;
+        var dist = Math.sqrt(Math.pow(e.clientX-cx,2) + Math.pow(e.clientY-cy,2));
         if (dist < 80) {
           avatarClicks++;
           showToast('Click ' + avatarClicks + '/5 🏓', '');
-          if (avatarClicks >= 5) {
-            avatarClicks = 0;
-            launchBall();
-          }
+          if (avatarClicks >= 5) { avatarClicks = 0; launchBall(); }
         }
       });
 
@@ -343,51 +291,35 @@ const ogImgUrl = canonicalURL + socialImage;
         avatarWrapper.style.animation = 'none';
         avatarWrapper.style.transition = 'none';
         document.body.appendChild(avatarWrapper);
-        var x = rect.left;
-        var y = rect.top;
-        var dx = (Math.random() * 5 + 4) * (Math.random() > 0.5 ? 1 : -1);
-        var dy = (Math.random() * 5 + 4) * (Math.random() > 0.5 ? 1 : -1);
-        var targets = Array.from(document.querySelectorAll('h1, h2, p, button, a'));
+        var x = rect.left; var y = rect.top;
+        var dx = (Math.random()*5+4)*(Math.random()>0.5?1:-1);
+        var dy = (Math.random()*5+4)*(Math.random()>0.5?1:-1);
+        var targets = Array.from(document.querySelectorAll('h1,h2,p,button,a'));
         setInterval(function() {
-          x += dx; y += dy;
-          if (x <= 0 || x >= window.innerWidth - size) {
-            dx *= -1;
-            x = Math.max(0, Math.min(x, window.innerWidth - size));
-          }
-          if (y <= 0 || y >= window.innerHeight - size) {
-            dy *= -1;
-            y = Math.max(0, Math.min(y, window.innerHeight - size));
-          }
-          avatarWrapper.style.left = x + 'px';
-          avatarWrapper.style.top = y + 'px';
+          x+=dx; y+=dy;
+          if (x<=0||x>=window.innerWidth-size) { dx*=-1; x=Math.max(0,Math.min(x,window.innerWidth-size)); }
+          if (y<=0||y>=window.innerHeight-size) { dy*=-1; y=Math.max(0,Math.min(y,window.innerHeight-size)); }
+          avatarWrapper.style.left = x+'px'; avatarWrapper.style.top = y+'px';
           targets.forEach(function(el) {
             var r = el.getBoundingClientRect();
-            if (x + size > r.left && x < r.right && y + size > r.top && y < r.bottom) {
-              el.style.transform = 'rotate(' + (Math.random() * 30 - 15) + 'deg) scale(' + (0.7 + Math.random() * 0.5) + ')';
-              el.style.color = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+            if (x+size>r.left&&x<r.right&&y+size>r.top&&y<r.bottom) {
+              el.style.transform = 'rotate('+(Math.random()*30-15)+'deg) scale('+(0.7+Math.random()*0.5)+')';
+              el.style.color = '#'+Math.floor(Math.random()*16777215).toString(16).padStart(6,'0');
               el.style.transition = 'all 0.1s';
-              setTimeout(function() { el.style.transform = ''; el.style.color = ''; }, 400);
+              setTimeout(function() { el.style.transform=''; el.style.color=''; }, 400);
             }
           });
         }, 16);
       }
 
-      // ============================================
-      // 5. KONAMI CODE
-      // ============================================
       var konami = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
       var konamiIndex = 0;
       document.addEventListener('keydown', function(e) {
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
         if (e.key === konami[konamiIndex]) {
           konamiIndex++;
-          if (konamiIndex === konami.length) {
-            konamiIndex = 0;
-            triggerKonami();
-          }
-        } else {
-          konamiIndex = 0;
-        }
+          if (konamiIndex === konami.length) { konamiIndex = 0; triggerKonami(); }
+        } else { konamiIndex = 0; }
       });
 
       function triggerKonami() {
@@ -396,23 +328,17 @@ const ogImgUrl = canonicalURL + socialImage;
         overlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:9998; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:monospace;';
         overlay.innerHTML = '<div style="text-align:center; padding:2rem;"><div style="font-size:4rem; margin-bottom:1rem;">🏆</div><h2 style="color:#facc15; font-size:2rem; margin-bottom:1rem;">CHEAT CODE ACTIVATED</h2><p style="color:#94a3b8; margin-bottom:0.5rem;">↑↑↓↓←→←→BA</p><p style="color:#00ff00; font-size:1.2rem; margin:1.5rem 0;">You are now a legend.<br/>(+30 lives added. not really 😄)</p><p style="color:#60a5fa; font-size:0.9rem; margin-bottom:2rem;">You\'re one of the few who knows this secret 🤫</p><button onclick="this.parentElement.parentElement.remove()" style="background:#facc15; color:#000; border:none; padding:0.75rem 2rem; border-radius:9999px; cursor:pointer; font-family:monospace; font-weight:bold;">Awesome! 😎</button></div>';
         document.body.appendChild(overlay);
-        if (window.confetti) window.confetti({ particleCount: 200, spread: 120, origin: { y: 0.5 } });
+        if (window.confetti) window.confetti({particleCount:200,spread:120,origin:{y:0.5}});
       }
 
-      // ============================================
-      // SHARED TOAST
-      // ============================================
       function showToast(msg, icon) {
         var toast = document.createElement('div');
         toast.style.cssText = 'position:fixed; top:2rem; right:2rem; background:#1e293b; color:#fff; padding:1rem 1.5rem; border-radius:12px; z-index:9999; font-family:monospace; font-size:0.9rem; border:1px solid rgba(255,255,255,0.1); box-shadow:0 10px 30px rgba(0,0,0,0.5);';
-        toast.textContent = (icon ? icon + ' ' : '') + msg;
+        toast.textContent = (icon ? icon+' ' : '') + msg;
         document.body.appendChild(toast);
         setTimeout(function() { toast.remove(); }, 2500);
       }
 
-      // ============================================
-      // DOUBLE TAP FOOTER → SECRET DASHBOARD
-      // ============================================
       var lastFooterTap = 0;
       var footerTapCount = 0;
       document.addEventListener('click', function(e) {
@@ -427,33 +353,28 @@ const ogImgUrl = canonicalURL + socialImage;
               footerTapCount = 0;
               document.getElementById('secretDashboard').style.display = 'block';
             }
-          } else {
-            footerTapCount = 1;
-          }
+          } else { footerTapCount = 1; }
           lastFooterTap = now;
         }
       });
 
-      // ============================================
-      // VISITOR TRACKING
-      // ============================================
-      fetch('https://ipapi.co/json/')
+      // Fast visitor tracking
+      fetch('https://freeipapi.com/api/json')
         .then(function(r) { return r.json(); })
         .then(function(data) {
           fetch('/api/visitors', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              country: data.country_name,
-              city: data.city,
+              country: data.countryName,
+              city: data.cityName,
               device: navigator.userAgent.indexOf('Mobile') !== -1 ? 'Mobile' : 'Desktop',
               browser: navigator.userAgent.indexOf('Chrome') !== -1 ? 'Chrome' :
                        navigator.userAgent.indexOf('Firefox') !== -1 ? 'Firefox' :
                        navigator.userAgent.indexOf('Safari') !== -1 ? 'Safari' : 'Other'
             })
           });
-        });
-
+        }).catch(function() {});
     </script>
 
     <style is:inline>
