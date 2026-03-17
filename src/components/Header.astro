@@ -27,18 +27,13 @@ const { navLinks } = Astro.props;
     id="main-menu"
   >
     <ul class="gap-2 sm:flex">
-      {
-        navLinks.map((link) => (
-          <li class="relative">
-            
-              class={`nav-item relative block p-2 text-sm font-medium transition-all duration-500 after:absolute after:bottom-0 after:left-2/4 after:h-2 after:w-1 after:-translate-x-2/4 after:text-primary after:opacity-0 after:content-['•'] hover:text-white`}
-              href={link.href}
-            >
-              {link.text}
-            </a>
-          </li>
-        ))
-      }
+      {navLinks.map((link) => (
+        <li class="relative">
+          <a class="nav-item relative block p-2 text-sm font-medium text-neutral hover:text-white transition-all duration-500" href={link.href}>
+            {link.text}
+          </a>
+        </li>
+      ))}
     </ul>
   </nav>
 </header>
@@ -65,9 +60,9 @@ const { navLinks } = Astro.props;
         if (entry.isIntersecting) {
           navItems.forEach((item) => {
             if (item.getAttribute("href") === `#${entry.target.id}`) {
-              item.classList.add("text-white", "md:after:opacity-100");
+              item.classList.add("text-white");
             } else {
-              item.classList.remove("text-white", "md:after:opacity-100");
+              item.classList.remove("text-white");
             }
           });
         }
