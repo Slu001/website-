@@ -8,9 +8,11 @@
     <div class="mb-6 text-center">
       <p class="text-sm text-neutral mb-3">Your rating</p>
       <div id="starPicker">
-        {[1,2,3,4,5].map(n => (
-          <span class="star text-4xl cursor-pointer select-none" data-value={n}>☆</span>
-        ))}
+        <span class="star text-4xl cursor-pointer select-none" data-value="1">☆</span>
+        <span class="star text-4xl cursor-pointer select-none" data-value="2">☆</span>
+        <span class="star text-4xl cursor-pointer select-none" data-value="3">☆</span>
+        <span class="star text-4xl cursor-pointer select-none" data-value="4">☆</span>
+        <span class="star text-4xl cursor-pointer select-none" data-value="5">☆</span>
       </div>
       <input type="hidden" id="ratingValue" value="0" />
     </div>
@@ -30,66 +32,95 @@
   </div>
 </section>
 
-<script>
-  const SUPABASE_URL = 'https://sbiinkqoeoxlwzkdipmc.supabase.co';
-  const SUPABASE_KEY = 'sb_publishable_6kDsYF6l5bcr84zhsuEfYw_01wRymrL';
+<script is:inline>
+  var SUPABASE_URL = 'https://sbiinkqoeoxlwzkdipmc.supabase.co';
+  var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNiaWlua3FvZW94bHd6a2RpcG1jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NzU0OTQsImV4cCI6MjA4OTM1MTQ5NH0.vN7maOOPVpEw_RY64kCdL4U2nnUJCC6sjB_MCtMTnUg';
 
-  // Star picker
-  const stars = document.querySelectorAll('.star');
-  const ratingInput = document.getElementById('ratingValue') as HTMLInputElement;
+  var stars = document.querySelectorAll('.star');
+  var ratingInput = document.getElementById('ratingValue');
 
-  stars.forEach(star => {
-    star.addEventListener('mouseover', () => highlight(Number(star.getAttribute('data-value'))));
-    star.addEventListener('mouseout', () => highlight(Number(ratingInput.value)));
-    star.addEventListener('click', () => {
+  stars.forEach(function(star) {
+    star.addEventListener('mouseover', function() { highlight(Number(star.getAttribute('data-value'))); });
+    star.addEventListener('mouseout', function() { highlight(Number(ratingInput.value)); });
+    star.addEventListener('click', function() {
       ratingInput.value = star.getAttribute('data-value') || '0';
       highlight(Number(ratingInput.value));
     });
   });
 
-  function highlight(val: number) {
-    stars.forEach(s => {
-      const v = Number(s.getAttribute('data-value'));
+  function highlight(val) {
+    stars.forEach(function(s) {
+      var v = Number(s.getAttribute('data-value'));
       s.textContent = v <= val ? '★' : '☆';
-      (s as HTMLElement).style.color = v <= val ? '#f59e0b' : '#94a3b8';
+      s.style.color = v <= val ? '#f59e0b' : '#94a3b8';
     });
   }
 
-  // Load reviews
-  async function loadReviews() {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/reviews?order=created_at.desc`, {
+  function loadReviews() {
+    fetch(SUPABASE_URL + '/rest/v1/reviews?order=created_at.desc', {
       headers: {
         'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${SUPABASE_KEY}`
+        'Authorization': 'Bearer ' + SUPABASE_KEY
       }
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(reviews) {
+      var list = document.getElementById('reviewsList');
+      if (!reviews.length) {
+        list.innerHTML = '<p class="text-center text-neutral text-sm">No reviews yet — be the first!</p>';
+        return;
+      }
+      list.innerHTML = reviews.map(function(r) {
+        return '<div class="bg-white/5 border border-white/10 rounded-2xl p-6">' +
+          '<div class="flex items-center justify-between mb-2">' +
+          '<span class="font-medium text-white">' + r.name + '</span>' +
+          '<span class="text-xs text-neutral">' + new Date(r.created_at).toLocaleDateString() + '</span>' +
+          '</div>' +
+          '<div class="mb-3 text-amber-400">' + '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating) + '</div>' +
+          '<p class="text-sm text-neutral">' + r.comment + '</p>' +
+          '</div>';
+      }).join('');
     });
-    const reviews = await res.json();
-    const list = document.getElementById('reviewsList')!;
-
-    if (!reviews.length) {
-      list.innerHTML = '<p class="text-center text-neutral text-sm">No reviews yet — be the first!</p>';
-      return;
-    }
-
-    list.innerHTML = reviews.map((r: any) => `
-      <div class="bg-white/5 border border-white/10 rounded-2xl p-6">
-        <div class="flex items-center justify-between mb-2">
-          <span class="font-medium text-white">${r.name}</span>
-          <span class="text-xs text-neutral">${new Date(r.created_at).toLocaleDateString()}</span>
-        </div>
-        <div class="mb-3 text-amber-400">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</div>
-        <p class="text-sm text-neutral">${r.comment}</p>
-      </div>
-    `).join('');
   }
 
   loadReviews();
 
-  // Submit review
-  document.getElementById('submitReview')?.addEventListener('click', async () => {
-    const name = (document.getElementById('reviewName') as HTMLInputElement).value.trim();
-    const comment = (document.getElementById('reviewComment') as HTMLTextAreaElement).value.trim();
-    const rating = Number(ratingInput.value);
-    const msg = document.getElementById('reviewMsg')!;
+  document.getElementById('submitReview').addEventListener('click', function() {
+    var name = document.getElementById('reviewName').value.trim();
+    var comment = document.getElementById('reviewComment').value.trim();
+    var rating = Number(ratingInput.value);
+    var msg = document.getElementById('reviewMsg');
 
     if (!name || !comment || rating === 0) {
+      msg.textContent = 'Please fill in everything and pick a star rating!';
+      msg.classList.remove('hidden');
+      return;
+    }
+
+    fetch(SUPABASE_URL + '/rest/v1/reviews', {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({ name: name, rating: rating, comment: comment })
+    })
+    .then(function(res) {
+      if (res.ok) {
+        document.getElementById('reviewName').value = '';
+        document.getElementById('reviewComment').value = '';
+        ratingInput.value = '0';
+        highlight(0);
+        msg.textContent = 'Review submitted! Thanks 🙌';
+        msg.classList.remove('hidden');
+        setTimeout(function() { msg.classList.add('hidden'); }, 3000);
+        loadReviews();
+      } else {
+        msg.textContent = 'Something went wrong, try again!';
+        msg.classList.remove('hidden');
+      }
+    });
+  });
+</script>
