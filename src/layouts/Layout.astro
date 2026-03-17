@@ -30,12 +30,10 @@ const ogImgUrl = canonicalURL + socialImage;
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
-
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonicalURL} />
     <meta property="og:image" content={ogImgUrl} />
-
     <meta property="twitter:card" content="summary_large_image" />
     <meta property="twitter:url" content={canonicalURL} />
     <meta property="twitter:title" content={title} />
@@ -84,5 +82,130 @@ const ogImgUrl = canonicalURL + socialImage;
         z-index: 1;
       }
     </style>
+
+    <!-- Easter Egg -->
+    <div id="matrixOverlay" style="display:none; position:fixed; inset:0; background:#000; z-index:9999; flex-direction:column; align-items:center; justify-content:center;">
+      <canvas id="matrixCanvas" style="position:absolute; inset:0;"></canvas>
+      <div id="pillBox" style="position:relative; z-index:10; text-align:center;">
+        <p style="color:#00ff00; font-family:monospace; font-size:1.2rem; margin-bottom:2rem; text-shadow:0 0 10px #00ff00;">
+          This is your last chance.<br/>After this, there is no turning back.
+        </p>
+        <div style="display:flex; gap:2rem; justify-content:center;">
+          <button id="redPill" style="background:#dc2626; color:white; border:none; padding:1rem 2.5rem; border-radius:9999px; font-size:1rem; cursor:pointer; font-family:monospace; box-shadow:0 0 20px #dc2626;">
+            Red Pill 🔴
+          </button>
+          <button id="bluePill" style="background:#2563eb; color:white; border:none; padding:1rem 2.5rem; border-radius:9999px; font-size:1rem; cursor:pointer; font-family:monospace; box-shadow:0 0 20px #2563eb;">
+            Blue Pill 🔵
+          </button>
+        </div>
+        <p style="color:#00ff00; font-family:monospace; font-size:0.75rem; margin-top:1.5rem; opacity:0.6;">Press ESC to close</p>
+      </div>
+      <div id="neoMessage" style="display:none; position:relative; z-index:10; text-align:center; padding:2rem;">
+        <p id="neoText" style="color:#00ff00; font-family:monospace; font-size:1.5rem; text-shadow:0 0 20px #00ff00; line-height:2;"></p>
+        <button id="closeMatrix" style="margin-top:2rem; background:transparent; color:#00ff00; border:1px solid #00ff00; padding:0.75rem 2rem; border-radius:9999px; font-family:monospace; cursor:pointer;">
+          Exit the Matrix
+        </button>
+      </div>
+    </div>
+
+    <script is:inline>
+      var typed = '';
+      var secret = 'sanuth';
+
+      document.addEventListener('keydown', function(e) {
+        typed += e.key.toLowerCase();
+        if (typed.length > secret.length) typed = typed.slice(-secret.length);
+        if (typed === secret) {
+          activateMatrix();
+        }
+      });
+
+      function activateMatrix() {
+        var overlay = document.getElementById('matrixOverlay');
+        overlay.style.display = 'flex';
+        document.getElementById('pillBox').style.display = 'block';
+        document.getElementById('neoMessage').style.display = 'none';
+        startMatrixRain();
+
+        var rickroll = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+        var messages = [
+          'Welcome to the Matrix, Neo.\nYou have been chosen.\nThe truth is out there...\n\n🟢 Follow the white rabbit.',
+          'Wake up, Neo.\nThe Matrix has you.\nKnock, knock...\n\n🟢 You are the One.',
+          'There is no spoon.\nOnly code.\nYou now see the truth.\n\n🟢 Free your mind.',
+        ];
+        var msg = messages[Math.floor(Math.random() * messages.length)];
+        var redIsRick = Math.random() < 0.5;
+
+        document.getElementById('redPill').onclick = function() {
+          if (redIsRick) {
+            window.open(rickroll, '_blank');
+            closeMatrix();
+          } else {
+            showNeoMessage(msg);
+          }
+        };
+
+        document.getElementById('bluePill').onclick = function() {
+          if (!redIsRick) {
+            window.open(rickroll, '_blank');
+            closeMatrix();
+          } else {
+            showNeoMessage(msg);
+          }
+        };
+      }
+
+      function showNeoMessage(msg) {
+        document.getElementById('pillBox').style.display = 'none';
+        document.getElementById('neoMessage').style.display = 'block';
+        var el = document.getElementById('neoText');
+        el.textContent = '';
+        var i = 0;
+        var interval = setInterval(function() {
+          el.textContent += msg[i] === '\n' ? '\n' : msg[i];
+          i++;
+          if (i >= msg.length) clearInterval(interval);
+        }, 40);
+      }
+
+      function closeMatrix() {
+        document.getElementById('matrixOverlay').style.display = 'none';
+        stopMatrixRain();
+        typed = '';
+      }
+
+      document.getElementById('closeMatrix').addEventListener('click', closeMatrix);
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeMatrix();
+      });
+
+      var matrixInterval;
+      function startMatrixRain() {
+        var canvas = document.getElementById('matrixCanvas');
+        var ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        var cols = Math.floor(canvas.width / 16);
+        var drops = Array(cols).fill(1);
+
+        matrixInterval = setInterval(function() {
+          ctx.fillStyle = 'rgba(0,0,0,0.05)';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.fillStyle = '#00ff00';
+          ctx.font = '15px monospace';
+          drops.forEach(function(y, i) {
+            var char = String.fromCharCode(0x30A0 + Math.random() * 96);
+            ctx.fillText(char, i * 16, y * 16);
+            if (y * 16 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+            drops[i]++;
+          });
+        }, 40);
+      }
+
+      function stopMatrixRain() {
+        clearInterval(matrixInterval);
+      }
+    </script>
+
   </body>
 </html>
