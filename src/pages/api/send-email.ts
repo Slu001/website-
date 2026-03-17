@@ -10,8 +10,8 @@ export const POST: APIRoute = async ({ request }) => {
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      from: 'onboarding@resend.dev',
-      to: to,
+      from: 'Sanuth <onboarding@resend.dev>',
+      to: [to],
       subject: subject,
       text: message
     })

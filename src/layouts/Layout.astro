@@ -161,6 +161,7 @@ const ogImgUrl = canonicalURL + socialImage;
       var secret = 'sanuth';
 
       document.addEventListener('keydown', function(e) {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
         typed += e.key.toLowerCase();
         if (typed.length > secret.length) typed = typed.slice(-secret.length);
         if (typed === secret) {
@@ -279,6 +280,7 @@ const ogImgUrl = canonicalURL + socialImage;
         'Oh hi! You typed hello. Smart. Very smart. 🧠',
       ];
       document.addEventListener('keydown', function(e) {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
         helloTyped += e.key.toLowerCase();
         if (helloTyped.length > 5) helloTyped = helloTyped.slice(-5);
         if (helloTyped === 'hello') {
@@ -376,6 +378,7 @@ const ogImgUrl = canonicalURL + socialImage;
       var konami = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
       var konamiIndex = 0;
       document.addEventListener('keydown', function(e) {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
         if (e.key === konami[konamiIndex]) {
           konamiIndex++;
           if (konamiIndex === konami.length) {
@@ -443,8 +446,10 @@ const ogImgUrl = canonicalURL + socialImage;
             body: JSON.stringify({
               country: data.country_name,
               city: data.city,
-              device: navigator.platform,
-              browser: navigator.userAgent.split(' ').pop()
+              device: navigator.userAgent.indexOf('Mobile') !== -1 ? 'Mobile' : 'Desktop',
+              browser: navigator.userAgent.indexOf('Chrome') !== -1 ? 'Chrome' :
+                       navigator.userAgent.indexOf('Firefox') !== -1 ? 'Firefox' :
+                       navigator.userAgent.indexOf('Safari') !== -1 ? 'Safari' : 'Other'
             })
           });
         });
