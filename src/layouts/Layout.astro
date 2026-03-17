@@ -110,6 +110,51 @@ const ogImgUrl = canonicalURL + socialImage;
 
     <script is:inline>
       // ============================================
+      // MATRIX SOUND
+      // ============================================
+      var matrixAudioCtx = null;
+      var matrixSoundNodes = [];
+
+      function playMatrixSound() {
+        try {
+          matrixAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          matrixSoundNodes = [];
+          var frequencies = [200, 150, 100, 80, 60, 50, 40, 35, 30];
+          frequencies.forEach(function(freq, i) {
+            var osc = matrixAudioCtx.createOscillator();
+            var gain = matrixAudioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(matrixAudioCtx.destination);
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(freq, matrixAudioCtx.currentTime + i * 0.15);
+            gain.gain.setValueAtTime(0.2, matrixAudioCtx.currentTime + i * 0.15);
+            gain.gain.exponentialRampToValueAtTime(0.05, matrixAudioCtx.currentTime + i * 0.15 + 1.5);
+            osc.start(matrixAudioCtx.currentTime + i * 0.15);
+            matrixSoundNodes.push({ osc: osc, gain: gain });
+          });
+        } catch(e) {}
+      }
+
+      function stopMatrixSound() {
+        try {
+          if (matrixAudioCtx) {
+            matrixSoundNodes.forEach(function(node) {
+              try {
+                node.gain.gain.cancelScheduledValues(matrixAudioCtx.currentTime);
+                node.gain.gain.exponentialRampToValueAtTime(0.001, matrixAudioCtx.currentTime + 0.3);
+                node.osc.stop(matrixAudioCtx.currentTime + 0.3);
+              } catch(e) {}
+            });
+            setTimeout(function() {
+              try { matrixAudioCtx.close(); } catch(e) {}
+              matrixAudioCtx = null;
+              matrixSoundNodes = [];
+            }, 400);
+          }
+        } catch(e) {}
+      }
+
+      // ============================================
       // MATRIX EASTER EGG (type "sanuth")
       // ============================================
       var typed = '';
@@ -166,6 +211,7 @@ const ogImgUrl = canonicalURL + socialImage;
       function closeMatrix() {
         document.getElementById('matrixOverlay').style.display = 'none';
         stopMatrixRain();
+        stopMatrixSound();
         typed = '';
       }
 
@@ -197,27 +243,6 @@ const ogImgUrl = canonicalURL + socialImage;
       }
 
       function stopMatrixRain() { clearInterval(matrixInterval); }
-
-      // ============================================
-      // 1. SECRET SOUND
-      // ============================================
-      function playMatrixSound() {
-        try {
-          var actx = new (window.AudioContext || window.webkitAudioContext)();
-          [200, 150, 100, 80, 60].forEach(function(freq, i) {
-            var osc = actx.createOscillator();
-            var gain = actx.createGain();
-            osc.connect(gain);
-            gain.connect(actx.destination);
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(freq, actx.currentTime + i * 0.1);
-            gain.gain.setValueAtTime(0.3, actx.currentTime + i * 0.1);
-            gain.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + i * 0.1 + 0.3);
-            osc.start(actx.currentTime + i * 0.1);
-            osc.stop(actx.currentTime + i * 0.1 + 0.3);
-          });
-        } catch(e) {}
-      }
 
       // ============================================
       // 2. SHAKE DETECTOR
@@ -279,12 +304,13 @@ const ogImgUrl = canonicalURL + socialImage;
       }
 
       // ============================================
-      // 4. CLICK AVATAR 5x → BOUNCING BALL
+      // 4. CLICK AVATAR 5x → BOUNCING AVATAR BALL
       // ============================================
       var avatarClicks = 0;
       var ballActive = false;
 
       document.addEventListener('click', function(e) {
+        if (ballActive) return;
         var avatar = document.querySelector('.avatar-wrapper img');
         if (!avatar) return;
         var rect = avatar.getBoundingClientRect();
@@ -294,7 +320,7 @@ const ogImgUrl = canonicalURL + socialImage;
         if (dist < 80) {
           avatarClicks++;
           showToast('Click ' + avatarClicks + '/5 🏓', '');
-          if (avatarClicks >= 5 && !ballActive) {
+          if (avatarClicks >= 5) {
             avatarClicks = 0;
             launchBall();
           }
@@ -303,43 +329,54 @@ const ogImgUrl = canonicalURL + socialImage;
 
       function launchBall() {
         ballActive = true;
-        var ball = document.createElement('div');
-        ball.style.cssText = 'position:fixed; width:40px; height:40px; background:radial-gradient(circle at 30% 30%, #fff, #2563eb); border-radius:50%; z-index:9997; pointer-events:none; box-shadow:0 0 20px rgba(37,99,235,0.8); top:50%; left:50%;';
-        document.body.appendChild(ball);
-        var x = window.innerWidth / 2;
-        var y = window.innerHeight / 2;
-        var dx = (Math.random() * 6 + 4) * (Math.random() > 0.5 ? 1 : -1);
-        var dy = (Math.random() * 6 + 4) * (Math.random() > 0.5 ? 1 : -1);
-        var hits = 0;
+        var avatarWrapper = document.querySelector('.avatar-wrapper');
+        if (!avatarWrapper) return;
+        var rect = avatarWrapper.getBoundingClientRect();
+        var size = rect.width;
+
+        // Detach avatar and make it float
+        avatarWrapper.style.position = 'fixed';
+        avatarWrapper.style.top = rect.top + 'px';
+        avatarWrapper.style.left = rect.left + 'px';
+        avatarWrapper.style.margin = '0';
+        avatarWrapper.style.zIndex = '9997';
+        avatarWrapper.style.animation = 'none';
+        avatarWrapper.style.transition = 'none';
+        document.body.appendChild(avatarWrapper);
+
+        var x = rect.left;
+        var y = rect.top;
+        var dx = (Math.random() * 5 + 4) * (Math.random() > 0.5 ? 1 : -1);
+        var dy = (Math.random() * 5 + 4) * (Math.random() > 0.5 ? 1 : -1);
         var targets = Array.from(document.querySelectorAll('h1, h2, p, button, a'));
-        var anim = setInterval(function() {
+
+        setInterval(function() {
           x += dx; y += dy;
-          if (x <= 0 || x >= window.innerWidth - 40) dx *= -1;
-          if (y <= 0 || y >= window.innerHeight - 40) dy *= -1;
-          ball.style.left = x + 'px';
-          ball.style.top = y + 'px';
+          if (x <= 0 || x >= window.innerWidth - size) {
+            dx *= -1;
+            x = Math.max(0, Math.min(x, window.innerWidth - size));
+          }
+          if (y <= 0 || y >= window.innerHeight - size) {
+            dy *= -1;
+            y = Math.max(0, Math.min(y, window.innerHeight - size));
+          }
+          avatarWrapper.style.left = x + 'px';
+          avatarWrapper.style.top = y + 'px';
+
+          // Damage letters on hit
           targets.forEach(function(el) {
             var r = el.getBoundingClientRect();
-            if (x > r.left && x < r.right && y > r.top && y < r.bottom) {
-              el.style.transform = 'rotate(' + (Math.random() * 20 - 10) + 'deg) scale(' + (0.8 + Math.random() * 0.4) + ')';
-              el.style.color = '#' + Math.floor(Math.random() * 16777215).toString(16);
+            if (x + size > r.left && x < r.right && y + size > r.top && y < r.bottom) {
+              el.style.transform = 'rotate(' + (Math.random() * 30 - 15) + 'deg) scale(' + (0.7 + Math.random() * 0.5) + ')';
+              el.style.color = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
               el.style.transition = 'all 0.1s';
-              hits++;
-              setTimeout(function() { el.style.transform = ''; el.style.color = ''; }, 300);
+              setTimeout(function() {
+                el.style.transform = '';
+                el.style.color = '';
+              }, 400);
             }
           });
-          if (hits >= 20) {
-            clearInterval(anim);
-            ball.remove();
-            ballActive = false;
-            showToast('Ball retired after 20 hits! 🏓', '💥');
-          }
         }, 16);
-        setTimeout(function() {
-          clearInterval(anim);
-          ball.remove();
-          ballActive = false;
-        }, 10000);
       }
 
       // ============================================
